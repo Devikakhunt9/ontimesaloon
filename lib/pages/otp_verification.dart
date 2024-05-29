@@ -1,10 +1,13 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:custom_clippers/custom_clippers.dart';
 import 'package:salon/pages/home.dart';
 
 import 'package:salon/utils/colors.dart';
+import 'package:salon/utils/comman_variable.dart';
 import 'package:salon/widgets/otp_text_box.dart';
 
 class OTPVerificationPage extends StatefulWidget {
@@ -15,6 +18,8 @@ class OTPVerificationPage extends StatefulWidget {
 }
 
 class _OTPVerificationPageState extends State<OTPVerificationPage> {
+  String otpValue = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,13 +71,34 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
                 Form(
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 32),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        OtpBox(),
-                        OtpBox(),
-                        OtpBox(),
-                        OtpBox(),
+                        OtpBox(
+                          onOtpChanged: (value) {
+                            otpValue = value; // Receive the OTP value here
+                          },
+                        ),
+                        OtpBox(
+                          onOtpChanged: (value) {
+                            otpValue += value; // Receive the OTP value here
+                          },
+                        ),
+                        OtpBox(
+                          onOtpChanged: (value) {
+                            otpValue += value; // Receive the OTP value here
+                          },
+                        ),
+                        OtpBox(
+                          onOtpChanged: (value) {
+                            otpValue += value; // Receive the OTP value here
+                          },
+                        ),
+                        OtpBox(
+                          onOtpChanged: (value) {
+                            otpValue += value; // Receive the OTP value here
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -125,7 +151,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
                 //     ),
                 const SizedBox(height: 40),
                 InkWell(
-                  onTap: () => _showDecoratedAlert(context),
+                  onTap: () => _verifyOTP(context, otpValue),
 
                   // onTap: () {
                   //   Navigator.pushReplacement(
@@ -158,100 +184,118 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       ),
     );
   }
-}
 
-void _showDecoratedAlert(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        backgroundColor: const Color.fromARGB(255, 0, 11, 70),
-        icon: const Icon(
-          Icons.check_circle_rounded,
-          size: 60,
-          color: Colors.white,
-        ),
-        title: const Text(
-          'Successfully your\naccount done',
-          textAlign: TextAlign.center,
-          style: TextStyle(
+  Future<dynamic> _verifyOTP(BuildContext context, String otp) async {
+    print('_verifyOTP Function Called');
+
+    // Retrieve the email from Shared Preferences
+    String? number = await SharedPrefs.getNumber();
+
+    if (number == null) {
+      print('Error: number not found in Shared Preferences');
+      return null;
+    }
+
+    print("$otp ::: $number ");
+    final String apiUrl = 'https://ontimesalon.com/api/otp_verify.php';
+
+    try {
+      var map = Map<String, dynamic>();
+      map['otp'] = otp;
+      map['number'] = number;
+
+      var res = await http.post(
+        Uri.parse(apiUrl),
+        body: map,
+      );
+
+      print("Data sent");
+      if (res.statusCode == 200) {
+        print('Success: ${res.body}');
+      } else if (res.statusCode == 400) {
+        print('Client Error: ${res.body}');
+      } else {
+        print('Server Error: ${res.statusCode}');
+      }
+
+      if (jsonDecode(res.body)['status'] == 'success') {
+        _showDecoratedAlert(context);
+      }
+      return res;
+    } catch (e, stackTrace) {
+      print('Error: $e');
+      print('StackTrace: $stackTrace');
+      return null;
+    }
+  }
+
+  void _showDecoratedAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          backgroundColor: const Color.fromARGB(255, 0, 11, 70),
+          icon: const Icon(
+            Icons.check_circle_rounded,
+            size: 60,
             color: Colors.white,
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
           ),
-        ),
-        content: const Text(
-          'Successfully create your account\nnow enjoy our app',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 16.0,
+          title: const Text(
+            'Successfully your\naccount done',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        actions: <Widget>[
-          ButtonBar(
-            children: <Widget>[
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => const HomePage(),
-                    ),
-                  );
-
-                  //  Navigator.pushReplacement(
-                  //             context,
-                  //             MaterialPageRoute(
-                  //               builder: (context) =>
-                  //                   const HomePage(),
-                  //             ),
-                  //           );// Dismiss the dialog
-                  // Navigate back to the previous screen (HomeScreen)
-                  // Navigator.of(context).pop(); // Dismiss the dialog
-                },
-                child: Container(
-                  decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(5))),
-                  margin: const EdgeInsets.all(0),
-                  width: 300,
-                  height: 48,
-                  padding: const EdgeInsets.all(10),
-                  child: const Center(
-                    child: Text(
-                      'OK',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Color.fromARGB(255, 0, 11, 70),
+          content: const Text(
+            'Successfully create your account\nnow enjoy our app',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 16.0,
+            ),
+          ),
+          actions: <Widget>[
+            ButtonBar(
+              children: <Widget>[
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const HomePage(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                    margin: const EdgeInsets.all(0),
+                    width: 300,
+                    height: 48,
+                    padding: const EdgeInsets.all(10),
+                    child: const Center(
+                      child: Text(
+                        'OK',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Color.fromARGB(255, 0, 11, 70),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-
-          // ElevatedButton(
-
-          //   style: ElevatedButton.styleFrom(
-          //     backgroundColor: Colors.blue,
-          //     shape: RoundedRectangleBorder(
-          //       borderRadius: BorderRadius.circular(8.0),
-          //     ),
-          //   ),
-          //   onPressed: () {
-          // Navigator.of(context).pop(); // Dismiss the dialog
-          // Navigator.of(context)
-          //     .pop(); // Navigate back to the previous screen (HomeScreen)
-          //   },
-          //   child: const Text('OK'),
-          // ),
-        ],
-      );
-    },
-  );
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
