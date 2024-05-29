@@ -199,12 +199,13 @@ class _AskMobileNumberPageState extends State<AskMobileNumberPage> {
 
       if (jsonDecode(res.body)['status'] == 'success') {
         await SharedPrefs.saveNumber(number);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const OTPVerificationPage(),
-          ),
-        );
+        _showDecoratedAlert(context,jsonDecode(res.body)['otp'].toString());
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => const OTPVerificationPage(),
+        //   ),
+        // );
       }
       return res;
     } catch (e, stackTrace) {
@@ -212,6 +213,79 @@ class _AskMobileNumberPageState extends State<AskMobileNumberPage> {
       print('StackTrace: $stackTrace');
       return null;
     }
+  }
+
+  void _showDecoratedAlert(BuildContext context,String otp) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          backgroundColor: const Color.fromARGB(255, 0, 11, 70),
+          icon: const Icon(
+            Icons.check_circle_rounded,
+            size: 60,
+            color: Colors.white,
+          ),
+          title: const Text(
+            'Successfully your\naccount done',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 16,
+
+            ),
+          ),
+          content:  Text(
+            'Successfully OTP Sent\n${otp.toString()}',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 26.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: <Widget>[
+            ButtonBar(
+              children: <Widget>[
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OTPVerificationPage(),
+                      ),
+                    );
+
+                  },
+                  child: Container(
+                    decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(5))),
+                    margin: const EdgeInsets.all(0),
+                    width: 300,
+                    height: 48,
+                    padding: const EdgeInsets.all(10),
+                    child: const Center(
+                      child: Text(
+                        'OK',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Color.fromARGB(255, 0, 11, 70),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
   }
 
 }
