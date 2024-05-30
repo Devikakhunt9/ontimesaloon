@@ -21,6 +21,7 @@ class AskMobileNumberPage extends StatefulWidget {
 
 class _AskMobileNumberPageState extends State<AskMobileNumberPage> {
   final TextEditingController controller = TextEditingController();
+  bool isLoading = false;
 
   // final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
 
@@ -134,37 +135,41 @@ class _AskMobileNumberPageState extends State<AskMobileNumberPage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                InkWell(
-                  onTap: () async {
-                    await mobileNo(context, controller.text);
-                  },
-                  child: Container(
-                    // // padding: const EdgeInsets.all(32),
-                    margin: const EdgeInsets.symmetric(horizontal: 32),
-                    height: 50,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.all(Radius.circular(5))),
-                    child: const Center(
-                        child: Text(
-                      'SEND OTP',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600),
-                    )),
-                  ),
-                ),
+                isLoading
+                    ? Center(child: CircularProgressIndicator(color: Colors.white,)) // Add this line
+                    : InkWell(
+                        onTap: () async {
+                          await mobileNo(context, controller.text);
+                        },
+                        child: Container(
+                          // // padding: const EdgeInsets.all(32),
+                          margin: const EdgeInsets.symmetric(horizontal: 32),
+                          height: 50,
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5))),
+                          child: const Center(
+                              child: Text(
+                            'SEND OTP',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600),
+                          )),
+                        ),
+                      ),
               ]),
         ),
       ),
     );
   }
 
-
-
   Future<dynamic> mobileNo(BuildContext context, String number) async {
+    setState(() {
+      isLoading = true; // Add this line
+    });
     print('mobileNo Function Called');
 
     // Retrieve the email from Shared Preferences
@@ -199,7 +204,7 @@ class _AskMobileNumberPageState extends State<AskMobileNumberPage> {
 
       if (jsonDecode(res.body)['status'] == 'success') {
         await SharedPrefs.saveNumber(number);
-        _showDecoratedAlert(context,jsonDecode(res.body)['otp'].toString());
+        _showDecoratedAlert(context, jsonDecode(res.body)['otp'].toString());
         // Navigator.pushReplacement(
         //   context,
         //   MaterialPageRoute(
@@ -212,10 +217,14 @@ class _AskMobileNumberPageState extends State<AskMobileNumberPage> {
       print('Error: $e');
       print('StackTrace: $stackTrace');
       return null;
+    } finally {
+      setState(() {
+        isLoading = false; // Add this line
+      });
     }
   }
 
-  void _showDecoratedAlert(BuildContext context,String otp) {
+  void _showDecoratedAlert(BuildContext context, String otp) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -235,10 +244,9 @@ class _AskMobileNumberPageState extends State<AskMobileNumberPage> {
             style: TextStyle(
               color: Colors.white70,
               fontSize: 16,
-
             ),
           ),
-          content:  Text(
+          content: Text(
             'Successfully OTP Sent\n${otp.toString()}',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -258,7 +266,6 @@ class _AskMobileNumberPageState extends State<AskMobileNumberPage> {
                         builder: (context) => const OTPVerificationPage(),
                       ),
                     );
-
                   },
                   child: Container(
                     decoration: const BoxDecoration(
@@ -287,5 +294,4 @@ class _AskMobileNumberPageState extends State<AskMobileNumberPage> {
       },
     );
   }
-
 }

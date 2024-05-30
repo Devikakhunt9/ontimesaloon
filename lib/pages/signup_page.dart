@@ -38,6 +38,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool obsecuretxt = true;
   bool confrimobsecuretxt = true;
   bool isChecked = false;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -233,6 +234,9 @@ class _SignUpPageState extends State<SignUpPage> {
                               if (value!.isEmpty) {
                                 return "please Enter your password";
                               }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          if(value!.isNotEmpty && value!=_passwordController.text){
+                                return "password and Confirm Password must be same";
+                              }
                               return null;
                             },
                           ),
@@ -279,7 +283,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          InkWell(
+                          isLoading
+                              ? CircularProgressIndicator() // Add this line
+                              : InkWell(
                             onTap: () {
                               if (_formkey.currentState!.validate() &&
                                   isChecked == true) {
@@ -354,6 +360,9 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<dynamic> signUp(String email, String pass, String confirmpass) async {
+    setState(() {
+      isLoading = true;  // Add this line
+    });
     print('Sign Up Function Called');
     print("$email ::: $pass :::: $confirmpass");
     final String apiUrl =
@@ -389,6 +398,10 @@ class _SignUpPageState extends State<SignUpPage> {
       print('Error: $e');
       print('StackTrace: $stackTrace');
       return null;
+    }finally {
+      setState(() {
+        isLoading = false;  // Add this line
+      });
     }
   }
 }

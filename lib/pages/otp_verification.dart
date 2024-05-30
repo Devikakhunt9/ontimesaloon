@@ -19,6 +19,7 @@ class OTPVerificationPage extends StatefulWidget {
 
 class _OTPVerificationPageState extends State<OTPVerificationPage> {
   String otpValue = '';
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +151,9 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
                 //       ],
                 //     ),
                 const SizedBox(height: 40),
-                InkWell(
+                isLoading
+                    ? Center(child: CircularProgressIndicator(color: Colors.white,)) // Add this line
+                    :InkWell(
                   onTap: () => _verifyOTP(context, otpValue),
 
                   // onTap: () {
@@ -186,6 +189,9 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
   }
 
   Future<dynamic> _verifyOTP(BuildContext context, String otp) async {
+    setState(() {
+      isLoading = true;  // Add this line
+    });
     print('_verifyOTP Function Called');
 
     // Retrieve the email from Shared Preferences
@@ -226,7 +232,10 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       print('Error: $e');
       print('StackTrace: $stackTrace');
       return null;
-    }
+    }finally {
+      setState(() {
+        isLoading = false;  // Add this line
+      });}
   }
 
   void _showDecoratedAlert(BuildContext context) {
